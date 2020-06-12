@@ -9,6 +9,19 @@ if (substr($_SERVER['SERVER_SOFTWARE'],0,3) == 'PHP') {
 }
 
 
+Route::hooks(function($service = null) {
+  
+  print_r($this->request);
+  
+  if ($service == 'sns') {
+    $data = json_decode($this->request->data);
+    error_log(print_r($data,true));
+  } else {
+    throw new Error('No Service');
+  }
+  exit();
+});
+
 /*** IMPLEMENTATION *******************************************************************************/
 
 try {

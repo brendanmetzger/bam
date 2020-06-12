@@ -1,0 +1,135 @@
+<article>
+  <style type="text/css">
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color:#fff;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    input[type="checkbox"] {
+      padding:0;
+      margin: 0;
+      line-height: 0;
+      display:block;
+      float: left;
+    }
+    div.instructions {
+      font-size:0.85em;
+      padding:1em;
+      position: absolute;
+      background-color:rgba(255,255,255,0.9);
+      width: 30vw;
+      height: auto;
+      top: 1em;
+      left: 1em;
+    }
+  </style>
+  <script type="text/javascript">
+    // <![CDATA[
+      // 04-11-2017 JS */
+
+      var balance = function (n, a) {
+       var max = Math.sqrt(n) * Math.sqrt(a);
+       return [max, n / max].map(Math.round);
+      };
+
+      var dims = document.body.getBoundingClientRect();
+      var estimate = dims.width;
+      var ideal = balance(estimate, dims.width / dims.height);
+      var pieces = [];
+      var size   = ideal[0];
+      var grid   = ideal[0] * ideal[1];
+      for (var i = 0; i < grid; i++) {
+        var input = document.body.appendChild(document.createElement('input'));
+        input.type = 'checkbox';
+        input.value = i;
+        input.style.width = (100 / ideal[0]) + 'vw';
+        input.style.height = (100 / ideal[1]) + 'vh';
+        if (Math.random() < 0.4) {
+          input.checked = true;
+        }
+        pieces.push(input);
+      }
+
+      function draw() {
+        var state = pieces.map(selection);
+  
+        for (var i = 0; i < state.length; i++) {
+          if (state[i] < 2 || state[i] > 3) {
+            pieces[i].checked = false;
+          } else if (!pieces[i].checked && state[i] === 3) {
+            pieces[i].checked = true;
+          }
+        }
+      }
+
+      function selection(elem) {
+        var n = [];
+        n.push(getTopNeighbor(elem));
+        n.push(getBottomNeighbor(elem));
+        n.push(getLeftNeighbor(elem));
+        n.push(getRightNeighbor(elem));
+
+        n.push(getLeftNeighbor(n[0]));
+        n.push(getRightNeighbor(n[0]));
+        n.push(getLeftNeighbor(n[1]));
+        n.push(getRightNeighbor(n[1]));
+        return n.filter(i => i.checked).length;
+      }
+
+      function getTopNeighbor(element) {
+        var position = parseInt(element.value) - size;
+        // if the position is less than the total, wrap
+        if (position < 0) {
+          position = pieces.length + position;
+        }
+        return pieces[position];
+      }
+
+      function getBottomNeighbor(element) {
+        var position = parseInt(element.value) + size;
+        // if the position is greater than the total, wrap
+        if (position >= pieces.length) {
+          position = position - pieces.length;
+        }
+        return pieces[position];
+      }
+
+      function getLeftNeighbor(element) {
+        if (element === undefined) return;
+        var position = parseInt(element.value);
+        // if the position is mod 0 against column length, wrap
+        if (position % size == 0) {
+          position += size - 1;
+        } else {
+          position -= 1;
+        }
+        return pieces[position];
+      }
+
+      function getRightNeighbor(element) {
+        var position = parseInt(element.value) + 1;
+        if (position % size == 0) {
+          position = position - size;
+        }
+        return pieces[position];
+      }
+
+      var stop = setInterval(draw, 125);
+    // ]]>
+  </script>
+
+  <div class="instructions">
+  <p>The universe of the Game of Life is an infinite two-dimensional orthogonal grid of square cells, each of which is in one of two possible states, alive or dead, or "populated" or "unpopulated". Every cell interacts with its eight neighbours, which are the cells that are horizontally, vertically, or diagonally adjacent. At each step in time, the following transitions occur:</p>
+      <ol>
+        <li>Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.</li>
+        <li>Any live cell with two or three live neighbours lives on to the next generation.</li>
+        <li>Any live cell with more than three live neighbours dies, as if by overpopulation.</li>
+        <li>Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.</li>
+      </ol>
+  </div>
+
+</article>

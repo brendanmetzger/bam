@@ -1,0 +1,90 @@
+#!/usr/bin/php
+<?php
+// require 'aws.phar';
+//
+// $transcoder = new \Aws\ElasticTranscoder\ElasticTranscoderClient([
+//   'version' => 'latest',
+//   'region' => 'us-east-1',
+//   'credentials' => [
+//     'key'    => 'AKIAYLPMCSVQ3FUK5MMU',
+//     'secret' => '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',
+//   ],
+// ]);
+//
+//
+// $pending = $transcoder->createJob([
+//   'PipelineId' => '1591822972844-tk3kpa',
+//   'Input'  => ['Key' => 'convert/extensis-s3.mov'],
+//   'Output' => ['Key' => 'convert/extensis.mp4', 'PresetId' => '1591813719270-xfwlc3']
+// ]);
+//
+//   echo $pending;
+// // print_r($pending);
+//
+// exit();
+//
+
+
+# regardless of where this script is executed, change our working directory to the application root
+chdir(dirname(__FILE__));
+
+# Include the configuration file
+define('CONFIG', parse_ini_file('data/config.ini'));
+
+# Require the framework file (this allows the file name to be changed easily, or broken out into separate files
+require 'src/diatom.php';
+
+
+
+
+Route::transcode(function($key, $name) {
+  return AWS::Transcode(CONFIG['aws'])->job($key, "videos/{$name}.mp4", '1591822972844-tk3kpa', '1591813719270-xfwlc3');
+});
+
+
+Route::upload(function($path, ?string $key = null, $bucket = 'brendan') {
+
+  $file = File::load($path);
+
+  if ($key) $file->uri = $key;
+  
+  $response = AWS::S3(CONFIG['aws'])->upload($file, $bucket, function($ch, $ds, $dld, $us, $upd) {
+    $prog = $upd / ($us ?: 1);
+    printf("% 5.1f%% [%-50s] %s \r", $prog * 100, str_repeat('#', round(50 * $prog)), 'uploading');
+  });
+  
+  echo "\nUpload Complete\n";
+    
+  $type = strtok($file->mime, '/');
+  if (in_array($type, ['audio','video']) && $this->prompt('Would you like to transcode? (y/n)') == 'y') {
+    print_r(Command::transcode($file->uri, $file->info['filename']));
+  }
+  
+  
+});
+
+
+
+
+
+## Implementation
+
+try {
+  
+  $command = new Command(array_slice($argv,1));
+  $output  = Route::compose($command);
+  
+} catch (Exception | Error $e) {
+
+  $output = sprintf("\n\033[0;31m%s\033[0m\n", $e->getMessage());
+  $output .= sprintf("line %s in %s\n", $e->getLine(), $e->getFile());
+  
+} finally {
+
+  echo $output;
+  echo "\n-- Finished {$command->action} -- \n";
+  exit($command->status);
+  
+}
+
+

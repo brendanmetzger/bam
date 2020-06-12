@@ -54,6 +54,8 @@ class File
     'woff2'=> 'font/woff2',
     'pdf'  => 'application/pdf',
     'mp4'  => 'video/mp4',
+    'mov'  => 'video/quicktime',
+    'm4a'  => 'audio/m4a',
     'mp3'  => 'audio/mp3',
     'xml'  => 'application/xml',
     'html' => 'text/html',
@@ -65,13 +67,13 @@ class File
     'gz'   => 'application/x-gzip'
   ];
   
-  public $uri, $url, $type, $info, $mime, $body = '';
+  public $uri, $url, $type, $info, $mime, $size = 0, $body = '';
 
   public function __construct(string $path, ?string $type = null)
   {
     $this->uri  = $path;
     $this->info = pathinfo($path);
-    $this->type = $type ?: $this->info['extension'];
+    $this->type = strtolower($type ?: $this->info['extension']);
     $this->url  = ($this->type == 'gz' ? 'compress.zlib' : 'file') . '://' . realpath($this->uri);
     $this->mime = self::$mimes[$this->type];
   }
@@ -81,6 +83,7 @@ class File
     $instance = new static($path);
     if (! $instance->body = file_get_contents($instance->url))
       throw new InvalidArgumentException('Bad path: ' . $path);
+    $instance->size = strlen($instance->body);
     return $instance;
   }
   
@@ -88,8 +91,7 @@ class File
     return hash($algo, $this->body) === trim($hash, '"');
   }
   
-  public function __toString()
-  {
+  public function __toString() {
     return $this->body;
   }
 }
@@ -123,9 +125,6 @@ class Request
     
     
     if (in_array($this->method, ['POST','PUT']) && ($headers['CONTENT_LENGTH'] ?? 0) > 0) {
-      
-
-      // can be _POST or stdin... consider  
       $this->data = file_get_contents('php://input');
     }
   }
@@ -140,10 +139,10 @@ class Request
   
   static public function POST($url, array $data, ?callable $callback, array $headers = []): Response
   {
-
     $response = new Response(new Request(array_merge($headers, [
-      'REQUEST_URI' => parse_url($url)['path'],
+      'REQUEST_URI'    => parse_url($url)['path'],
       'REQUEST_METHOD' => 'POST',
+      'CONTENT_TYPE'   => $headers['content-type'] ?? null,
     ])));
     
     curl_setopt_array($ch = curl_init(), [
@@ -154,7 +153,9 @@ class Request
       CURLOPT_RETURNTRANSFER   => true,
     ]);
     
-    if (($headers['CONTENT_TYPE'] ?? null) == 'application/json') {
+    $headers['content-type'] ??= 'multipart/form-data';
+    
+    if ($headers['content-type'] == 'application/json') {
       $data = json_encode($data);
     }
     
@@ -171,10 +172,14 @@ class Request
       curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, $callback);
     }
     
-
     $response->body = curl_exec($ch);
     
     curl_close($ch);
+    
+    if ($response->headers['content-type'] ?? '' == 'application/json') {
+      $response->merge(json_decode($response->body, true));
+    }
+    
     return $response;
   }
   
@@ -194,26 +199,30 @@ interface Router
 class Response extends File implements Router
 {
   use Registry;
-  public $action, $params, $request, $headers = [], $layout, $view;
+  public $action, $params, $request, $headers = [], $layout, $view, $yield;
   private $partial = null;
   
   static private $routes = [];
-  
+
   public function __construct(Request $request, $yield = 'content')
   {
     parent::__construct($request->uri, $request->type);
-    $this->request  = $request;
-    $this->yield    = $yield;
-    $this->body   = self::$routes[$request->default] ?? null;
-    $this->params   = explode('/', $request->route);
-    $this->action   = strtolower(array_shift($this->params));
-    $this->view     = self::$routes[$request->route] ?? null;
-    $this->layout = $this->body ? new Template($this->body) : null;
+    $this->request = $request;
+    $this->yield   = $yield;
+    $this->body    = self::$routes[$request->default] ?? null;
+    $this->params  = explode('/', $request->route);
+    $this->action  = strtolower(array_shift($this->params));
+    $this->view    = self::$routes[$request->route] ?? null;
+    $this->layout  = $this->body ? new Template($this->body) : null;
   }
   
   public function header($resource, $header)
   {
-    $this->headers[] = $header;
+    if (!empty(trim($header))) {
+      $split = strpos($header, ':') ?: 0;
+      $key   = $split ? strtolower(substr($header, 0, $split)) : 'status'; 
+      $this->headers[$key] = trim($split ? substr($header, $split+1) : $header);
+    }
     return strlen($header);
   }
   
@@ -231,7 +240,7 @@ class Response extends File implements Router
   }
   
   
-  static public function gather(array $files, $pi = 'publish', $error = 'error/index.html')
+  static public function gather(array $files, $pi = 'publish', $error = 'guide/index.html')
   {
     $queue = new SplPriorityQueue;
     self::$routes['error'] = Document::open($error);
@@ -643,16 +652,15 @@ trait invocable
 # Registry
 
 trait Registry {
-  public $data;
+  public $data = [];
   public function __set($key, $value) {
     $this->data[$key] = $value;
   }
   public function __get($key) {
     return $this->data[$key];
   }
-  public function merge(array $data)
-  {
-    return array_merge($data, $this->data);
+  public function merge(array $data) {
+    return $this->data = array_merge($data, $this->data);
   }
 }
 

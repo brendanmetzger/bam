@@ -12,7 +12,10 @@ Document::on('open', function (Document $DOM) {
     $node->setAttribute('data-line', $node->getLineNo());
   }
   if (($DOM->documentElement->nodeName == 'html')) {
-    $DOM->documentElement->appendChild(new Element('script'))->setAttribute('src', 'ux/edit.js');
+    $frag = $DOM->createDocumentFragment();
+    $frag->appendXML(File::load('guide/edit.html'));
+    $DOM->documentElement->appendChild($frag);
+    // $DOM->documentElement->appendChild(new Element('script'))->setAttribute('src', 'ux/edit.js');
   }
 });
 
