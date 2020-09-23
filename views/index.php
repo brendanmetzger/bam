@@ -40,9 +40,9 @@ try {
     
     $data = [
       'pages'       => $pages, 
-      'description' => 'A modeled templating framework, no dependencies.',
+      'description' => 'Musings and work of Brendan Metzger.',
       'timestamp'   => new DateTime,
-      'title'       => 'Diatom Micro Framework',
+      'title'       => 'B.A.M.',
       'test'        => [['key' => 'A'], ['key' => 'B']],
     ];
     
