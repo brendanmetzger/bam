@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>${message}</title>
+    <style>
+      :root {font-family: 'Courier New';font-size: 1em;background-color: #222; color: #fff;}
+      body {margin: 5%;}
+      pre {white-space:pre-wrap;}
+      a {color: #FF0010;}
+    </style>
+  </head>
+  <body>
+    <section>
+      <h1>${code} Error</h1>
+      <p>${message}</p>
+      <p><a href="${wrapper}?url=file://${file}&amp;line=${line}">Go to ${line} file</a></p>
+      <hr/>
+      <h4>Reverse Trace</h4>
+      <ul data-protocol="${wrapper}">
+        <!-- iterate trace -->
+        <li title="${file}"><strong>${class}::${function}</strong><span>line ${line}</span></li>
+      </ul>
+    </section>
+    
+  </body>
+</html>

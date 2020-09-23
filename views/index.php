@@ -28,7 +28,7 @@ try {
   
   header("Content-Type: {$request->mime}");
   
-  if (file_exists($request->uri)) {
+  if (is_file($request->uri)) {
     // php dev server handles static files too; prod this can config to cache as this would be done by http server
     $output = Response::load($request)->body;
     header('Content-Length: '. strlen($output));

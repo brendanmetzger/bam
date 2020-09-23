@@ -4,10 +4,10 @@
   --blue: #0300FE;
   --yellow: #FEFF0B;
   --black: rgba(0,0,0,0.9);
-  --condensed: 'IBM Plex Sans Condensed', 'Avenir Next Condensed', 'Open Sans Condensed', sans-serif;
+  --condensed: 'Avenir Next Condensed', 'Open Sans Condensed', sans-serif;
   --mono: 'IBM Plex Mono', Inconsolata, 'Courier New', monospace;
-  --serif: 'IBM Plex Serif', 'Baskerville', serif;
-  --copy: 'IBM Plex Sans', 'Avenir Next', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --serif: dapifer, 'Baskerville', serif;
+  --copy: 'Avenir Next', 'Helvetica Neue', Helvetica, Arial, sans-serif;
    font: normal 400 1.175em/1 var(--copy);
 }
 *, *:before, *:after { box-sizing: border-box }
@@ -67,7 +67,7 @@ header nav ul, aside nav ul {
 
 strong, dt { font-weight: 600; opacity: 0.9;}
 
-h1, h2, h3, h5, h6, abbr { font-size:1em;font-weight: 300;font-family: var(--condensed); text-decoration:none; }
+h1, h2, h3, h5, h6, abbr { font-size:1em;font-weight: 300; text-decoration:none; }
 
           p { line-height:1.375;margin: 0.75em 0; }
 section > p { max-width:65ch;}

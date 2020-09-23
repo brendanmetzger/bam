@@ -1,0 +1,36 @@
+<article id="sound-opinions">
+  <header>
+    <h2>Sound Opinions</h2>
+    <h4>
+      <time>2013</time>, <time>2020</time>
+    </h4>
+    <h4>
+      <a href="http://www.soundopinions.org/show/628">soundopinions.org</a>
+    </h4>
+    <p>Sound opinions is a nationally syndicated radio program and podcast.</p>
+  </header>
+  <section>
+    <h3>
+      <strong>Data without a database</strong>
+    </h3>
+    <p>It is perhaps no big surprise that the producers of <cite>Sound Opinions</cite> adhere to <abbr>NPR</abbr> affiliate clich&#xE9; of having a firm appreciation for egg-headedness. When approaching an organization as a collection capable humans, one should take the opportunity to design <em>for that organization</em>. In my case, I pursue designs that rely as heavily as they can on the human end of the bargain, though this can only be accomplished by placing firm expectations on that same end. And a wee note, whenever I say the word 'design' in the context of anything I do, I care little for the arrangment of items and layouts&#x2014;I'm referring to the action one takes to perform a task and realize a goal.</p>
+    <p>The inherited content from the old site had been crafted; artists, albums, places, etc. had been noted meticulously. The site they were preparing to leave behind was 100% old-school <abbr title="hypertext markup language">html</abbr>&#x2014;a format I truly and deeply value. The riddle was thus: how do you keep the uniqueness of custom authored markup but enhance it with a management system that makes creating new content, adding metadata, and searching and sorting content easy (for syntax enthusiasts, of course). Given that the goal is to end with markup, why not just start with markup? Of course, that means putting all your trust in the human...</p>
+  </section>
+  <section>
+    <h3>
+      <strong>Outcome</strong>
+    </h3>
+    <p>I prototyped <mark>a single-text-box <abbr title="content management system">cms</abbr></mark> to show the possibility of using only syntax to create episodes&#x2014;an idea that, quite naturally, was met with suspicion. That quick prototype turned out convincing enough, and interestingly, that work never changed all that much in the final production version.</p>
+    <p>A user simply creates an outline like they would in a word processing program. For complicated endeavors, like media-management, syntax was provided to work with every <abbr title="application programming interface">api</abbr> imaginable: soundcloud, youtube, flickr and iTunes. Copy a linkt from YouTube and you have a player, or to Flickr and you have a gallery.</p>
+    <p>For a site to provide context and navigability an admin provides metadata,&#x2014;usually in a series of menus, checkboxes and other inputs. In observing people fill out forms for a decade, I've never gotten the impression that it is an enjoyable activity. But metadata can be enjoyable if it saves you time, especially if you already did the hard parts of authoring some content. In a nutshell, the Sound Opinions <abbr>CMS</abbr> tracks metadata by asking that an admin to look over the copy and highlight significant elements (like an album or artist name). They can link the bits of highlighted text to one another by literally drawing a line between them. Some patterns have meaning&#x2014;connecting an album and and artist triggers a query to find and embed album art. I daresay, it's almost fun.</p>
+    <figure>
+      <video src="http://static.brendanmetzger.com.s3.amazonaws.com/videos/drawing-metadata.m4v" controls="controls" preload="metadata" loop="loop">
+        <p>HTML5 Video</p>
+      </video>
+      <figcaption>
+        <p>Using the text box on the left a user uses a modified version of markdown to create sections and add tags. On the right tags can be connected to do additional tasks like gather album art or cataloging reviews. A modified markdown parser composes sections and templates in an algorithmic fashion, so that episodes can take any shape and size as necessary from the content provided.</p>
+        <p>A highlight: This was the first project I decided to forgo any and all JavaScript frameworks. I haven't used one since.</p>
+      </figcaption>
+    </figure>
+  </section>
+</article>
