@@ -1,9 +1,0 @@
-:root {
-  --gutter: 2vh;
-  font-size: 1rem;
-}
-
-main article,
-body > aside ~ * { margin:0; width:100%;}
-body > aside, 
-main > nav       { display:none; }

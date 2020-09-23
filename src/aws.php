@@ -8,7 +8,7 @@ class AWS {
   
   private function __construct($service, string $version, $id, $secret, $region) {
     
-    if ($service == 's3') $this->host = "https://{$version}.s3.amazonaws.com/";
+    if ($service == 's3') $this->host = "https://{$version}.s3.{$region}.amazonaws.com/";
     else                  $this->host = "https://{$service}.{$region}.amazonaws.com/{$version}";
    
     $this->time   = time();
@@ -79,11 +79,11 @@ class AWS {
     ];
     
     $headers['Authorization'] = $this->authorize($endpoint, $headers, $body);
-    return Request::POST($endpoint, $job, null, $headers);
+    return Request::POST($endpoint, $job, $headers);
   }
   
   
-  public function upload(File $file, string $bucket, ?callable $callback = null, $mb = 100)
+  public function upload(File $file, string $bucket, ?callable $callback = null, $mb = 150)
   {  
     $endpoint = "https://{$bucket}.s3.amazonaws.com/";
     
@@ -94,7 +94,19 @@ class AWS {
 
     if ($file->size > $rules[0][2]) throw new Exception("File too large to upload as configured");
 
-    return Request::POST($endpoint, $this->policy($file, $rules), $callback);
+    return Request::POST($endpoint, $this->policy($file, $rules), [], $callback);
+  }
+  
+  public function xhr($key, $bucket)
+  {
+    $rules = [
+      ['content-length-range', '1', '500000'],
+      ['bucket' => $bucket]
+    ];
+    return json_encode([
+      'action' => "https://{$bucket}.s3.amazonaws.com/",
+      'input' => $this->policy(new File($key), $rules),
+    ]);
   }
   
   private function policy(File $file, array $rules, array $meta = []): array
@@ -104,7 +116,7 @@ class AWS {
     
     $fields  = array_merge([
       'acl'                     => 'public-read',
-      'key'                     => $file->uri,
+      'key'                     => trim($file->uri, '/'),
       'content-type'            => $file->mime,
       'x-amz-credential'        => $this->cred,
       'x-amz-algorithm'         => $this->algo,
@@ -121,7 +133,11 @@ class AWS {
     ])));
       
     $fields['x-amz-signature'] = hash_hmac('sha256', $fields['policy'], $this->secret);
-    $fields['file'] = $file->body;
+    
+    if (! empty($file->body)) {
+      $fields['file'] = $file->body;
+    }
+    
     
     return $fields;
   }
