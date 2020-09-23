@@ -50,7 +50,7 @@ try {
     $output   = Route::compose($response);
 
     if ($output instanceof Template) {
-      $output = $output->render($response->data);
+      $output = Render::DOM($output->render($response->data));
       if ($request->type == 'json'){
         $output = json_encode(simplexml_import_dom($output));
       }
@@ -61,18 +61,17 @@ try {
 
   http_response_code($e->getCode() ?: 400);
   // $toarr = (array)$e;
-  $output = Request::open('error', [
+  $output = Request::GET('error', [
     'wrapper' => CONFIG['DEV'] ?? null,
     'message' => $e->getMessage(),
     'code'    => $e->getCode(),
     'file'    => $e->getFile(),
     'line'    => $e->getLine(),
-    'trace'   => array_reverse($e->getTrace()),
+    'trace'   => $e->getTrace(),
   ]);
   
 } finally {
 
   echo $output;
-  
 
 }
