@@ -1,2 +1,4 @@
 .eslintrc.json
 *.log
+*.ini
+data/*
