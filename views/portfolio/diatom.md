@@ -6,16 +6,6 @@
 
 ``` style
 
-article {
-  background-color:#fafafa;
-  padding: 5%;
-  max-width: 75em;
-  margin:1rem;
-}
-
-article > section:first-of-type {
-  columns: var(--columns);
-}
 
 article > section:first-of-type p:first-of-type {
   font-size: 162.5%;
@@ -25,7 +15,6 @@ article > section:first-of-type p:first-of-type {
 section:first-of-type > h2 {
   margin: 0;
   padding: 1rem;
-  border-bottom: var(--thin-rule);
 }
 
 h1 {
