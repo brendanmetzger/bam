@@ -190,7 +190,6 @@ class Block {
       return $element->appendChild(new DOMText($token->text));
     
     $element->nodeValue = preg_replace(['/(?<=\s)\'/u', '/(?<=\S)\'/u', '/\s?--\s?/u'], ['‘', '’', '—'], htmlspecialchars($token->value, ENT_XHTML, 'UTF-8', false));
-    // Inline::format($element);
     (new Inline($element))->parse();
 
     return $context;
@@ -233,9 +232,10 @@ class Inline {
       ...$this->gather(self::$rgxp['pair'], $text, [$this, 'basic']),
       ...$this->gather('/\{([a-z]+)\:(.+?)\}/u', $text, [$this, 'tag'])
     ];
-
+    
     if ($node->nodeName == 'li')
-      array_push($matches, ...$this->gather('/^\[([x\s])\](.*)$/u', $text, [$this, 'input']));
+      array_unshift($matches, ...$this->gather('/^\[([x\s])\](.*)$/u', $text, [$this, 'input']));
+
     
     usort($matches, fn($A, $B)=> $B[2] <=> $A[2]);
 

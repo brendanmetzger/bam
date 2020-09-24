@@ -6,13 +6,13 @@ libxml_use_internal_errors(true);
 spl_autoload_register();
 
 
-###################################################################################################
-# Route | Provides two useful methods to enable routing methods specified by a user's request
-## 1. set up routse with `Route::{name}(callback|callable)`
-## 2. compose a router, `Route::compose(new Response|new Command)`
+/**
+ * Route | Provides to enable default and callback routing
+ *
+**/
 
-class Route
-{
+class Route {
+  
   static private $actions = [], $paths = [];
   
   // private function __construct(callable $action, $view = null) {
@@ -55,12 +55,12 @@ class Route
   }
 }
 
-###########################################################################################################
-# File | Construct an object that represents an object that can, conceiveably, be saved somewhere
-## Use this class if you want to open/read/create/save a file somewhere
-## Use this class if you want to look up a mimetype
-## This class is often Type inforced by other classes ie., funcion someMethod(File $arg) {...}
-## Load up a file with the static File::load and you will have access to a body property
+
+/**
+ * File | Construct an object that represents something that can be openclose
+ * shows up alot i other classes ie., funcion someMethod(File $arg) {...}
+ *
+**/
 
 class File
 {
@@ -134,10 +134,11 @@ class File
   }
 }
 
-###################################################################################################
-# Request | This is used to configure an variable request (like a web server) via the constructor
-## use static  /GET methods to request and execute preconfigured routes
 
+/**
+ * Request | This is used to configure an variable request (like a web server) via the constructor
+ *
+**/ 
 
 class Request
 {
@@ -194,6 +195,10 @@ interface Router
   public function delegate($config);
 }
 
+
+/**
+ * Response | finds correct template object, renders it, tracks headers...
+**/
 
 class Response extends File implements Router
 {
@@ -252,10 +257,10 @@ class Response extends File implements Router
 }
 
 
-###########################################################################################################
-# Controller | Usually extended, but can be instantiatied @see Router. Follows the common practice of
-# many frameworks where the method name is the second parameter in a url. Controllers are applied
-# using the Route::name(callable) convention (also specifiels __invoke to return default controller)
+/**
+ * Controller | Usually extended, but can be instantiatied @see Router. Follows the common practice of
+ * 
+**/
 
 abstract class Controller
 {
@@ -293,10 +298,12 @@ abstract class Controller
   }
 }
 
-###########################################################################################################
-# Template | rarely need to interact with this directly, it is mainly responsible for allowing
-# DOM objects to be parsed in rendered against user-supplied data. All configuration for this
-# happens in templates themselves, save for the `render` method, which is how data is applied
+
+/**
+ * Template | rarely need to interact with this directly, it is responsible for plopping
+ *          | data variables into the appropriate Document objects
+ *
+**/
 
 class Template
 {
@@ -428,58 +435,16 @@ class Template
   }
 }
 
-###################################################################################################
-# Document | This loads and creates documents that can be searched and modified. Extends the 
-# language-supplied DOMDocument object to subclass some of the nodes for convienient interactions.
-## While the document object model can be wordy, it is powerful, and it is literally the same api
-## in any language that provides an interface (namely JavaScript). This class is used exclusively
-## and often to interact with data, templates... basically doing anything with markup involved.
+
+/**
+ * Document | Loads and creates documents that can be searched and modified.
+ *          | Extends the language-supplied DOMDocument and several subclasses
+ *
+**/
 
 class Document extends DOMDocument
 {
-  public  $info  = [];
-  private $xpath = null,
-          $props = [ 'preserveWhiteSpace' => false, 'formatOutput' => true, 'encoding' => 'UTF-8'];
-
   static private $cache = [];
-  public function  __construct(string $xml, array $props = [])
-  {
-    parent::__construct('1.0', 'UTF-8');
-
-    foreach (( $props + $this->props ) as $p => $value) $this->{$p} = $value;
-    foreach (['Element','Text','Attr'] as       $c    ) $this->registerNodeClass("DOM{$c}", $c);
-    
-    if (! $this->loadXML($xml, LIBXML_COMPACT)) throw new ParseError('DOM Parse Error');
-    
-    $this->xpath = new DOMXpath($this);
-  }
-  
-  public function save($path) {
-    return file_put_contents($path, $this->saveXML(), LOCK_EX);
-  }
-  
-  public function find($exp, ?DOMNode $context = null): DOMNodelist
-  {
-    if (! $result = $this->xpath->query($exp, $context))
-      throw new Exception("Malformed predicate: {$exp}", 500);
-    
-    return $result;
-  }
-    
-  public function select($exp, ?DOMNode $context = null) {
-    return $this->find($exp, $context)[0] ?? null; 
-  }
-  
-  public function evaluate(string $exp, ?DOMNode $context = null) {
-    return $this->xpath->evaluate("string({$exp})", $context);
-  }
-    
-  public function __toString()
-  {
-    $prefix = $this->documentElement->nodeName == 'html' ? "<!DOCTYPE html>\n" : '';
-    return $prefix . $this->saveXML($this->documentElement);
-  }
-    
   // accepts string|File
   static public function open($path, $opt = [])
   {
@@ -497,7 +462,7 @@ class Document extends DOMDocument
     } catch (ParseError $e) {
       $err = (object)libxml_get_errors()[0];
       $hint = substr(file($path)[$err->line-1], max($err->column - 10, 0), 20);
-      throw new ErrorException($err->message . ", around: '{$hint}'", 500, E_ERROR, realpath($path), $err->line, $e);
+      throw new ErrorException($err->message . " in {$path}, around: '{$hint}'", 500, E_ERROR, realpath($path), $err->line, $e);
     }
 
     foreach ($DOM->find("/processing-instruction()") as $pi)
@@ -510,11 +475,51 @@ class Document extends DOMDocument
     return self::$cache[$key] = $DOM;
   }
   
+  
+  public  $info  = [];
+  private $xpath = null,
+          $props = [ 'preserveWhiteSpace' => false, 'formatOutput' => true, 'encoding' => 'UTF-8'];
+  
+  
+  public function  __construct(string $xml, array $props = [])
+  {
+    parent::__construct('1.0', 'UTF-8');
+
+    foreach (( $props + $this->props ) as $p => $value) $this->{$p} = $value;
+    foreach (['Element','Text','Attr'] as       $c    ) $this->registerNodeClass("DOM{$c}", $c);
+    
+    if (! $this->loadXML($xml, LIBXML_COMPACT)) throw new ParseError('DOM Parse Error');
+    
+    $this->xpath = new DOMXpath($this);
+  }
+  
+  public function __toString() {
+    $prefix = $this->documentElement->nodeName == 'html' ? "<!DOCTYPE html>\n" : '';
+    return $prefix . $this->saveXML($this->documentElement);
+  }
+  
+  
+  
+  public function find($exp, ?DOMNode $context = null): DOMNodelist
+  {
+    if (! $result = $this->xpath->query($exp, $context))
+      throw new Exception("Malformed predicate: {$exp}", 500);
+    
+    return $result;
+  }
+    
+  public function select($exp, ?DOMNode $context = null) {
+    return $this->find($exp, $context)[0] ?? null; 
+  }
+  
+  public function evaluate(string $exp, ?DOMNode $context = null) {
+    return $this->xpath->evaluate("string({$exp})", $context);
+  }
+  
+  public function save($path) {
+    return file_put_contents($path, $this->saveXML(), LOCK_EX);
+  }
 }
-
-
-###################################################################################################
-# DOMtype extensions
 
 
 class Element extends DOMElement implements ArrayAccess {
@@ -605,8 +610,10 @@ trait invocable
   }
 }
 
-###################################################################################################
-# Registry
+/**
+ * Data stuff
+ *
+**/
 
 trait Registry {
   public $data = [];
@@ -620,9 +627,6 @@ trait Registry {
     return $this->data = array_merge($this->data, $data);
   }
 }
-
-###################################################################################################
-# Data
 
 class Data extends ArrayIterator
 {
@@ -694,9 +698,11 @@ class Data extends ArrayIterator
   }
 }
 
-###################################################################################################
-# Model | a wrapper for any DOM element that turns it into a model-able resource
-# 
+/**
+ * Model | a wrapper for any DOM element that turns it into a model-able resource
+ *
+**/
+
 abstract class Model implements ArrayAccess {
   protected $context;
 
@@ -734,8 +740,10 @@ abstract class Model implements ArrayAccess {
   }
 }
 
-###################################################################################################
-# Redirect | simply throw this with a url and the app will catch it and exit nicely
+/**
+ * Redirect | simply throw this with a url and the app will catch it and exit nicely
+ *
+**/
 
 class Redirect extends Controller {
   // 301 permanent, 302, temporary, 303 after put/post

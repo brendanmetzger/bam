@@ -1,7 +1,7 @@
-<?php
+<?php namespace util;
 
 
-class Sprite extends File
+class Sprite extends \File
 {
   public $bg = [250,250,250], $index, $cell, $capacity, $root;
   
@@ -103,7 +103,7 @@ class Sprite extends File
   }
   
   
-  static public function update(int $cellsize, array $boardsize, Data $images)
+  static public function update(int $cellsize, array $boardsize, \Data $images)
   {
     $log  = new Bench('start', $images->length);
     $area = array_product($boardsize);
@@ -117,20 +117,5 @@ class Sprite extends File
     }
     
     return self::$sprites;
-  }
-}
-
-class Image {
-  
-  public function __construct(string $rawdata)
-  {
-    $this->resource  = imagecreatefromstring($rawdata);
-    $this->width     = imagesx($this->resource);
-    $this->height    = imagesy($this->resource);
-    $this->aspect    = $this->width / $this->height;
-  }
-  
-  public function __destruct() {
-    imagedestroy($this->resource);
   }
 }
