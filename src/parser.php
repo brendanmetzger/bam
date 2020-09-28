@@ -26,7 +26,17 @@ class Parser {
     throw new Error("{$file->type} Not Supported", 500);
   }
   
+<<<<<<< HEAD
 
+=======
+  static public function convert(Document $DOM)
+  {
+    $md = new Plain($DOM);
+    return (string) $md->paragraphs()->rules()->list()->headings()->CDATA();
+  }
+  
+  
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   private function scan($iterator)
   {
     $block = new Block;
@@ -44,9 +54,12 @@ class Parser {
     return $this->DOM->saveXML();
   }
   
+<<<<<<< HEAD
   static public function addCallback(callable $callback) {
     self::$callbacks[] = $callback;
   }
+=======
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
 }
 
 class Token {
@@ -154,17 +167,31 @@ class Block {
   
   public function process(DOMElement $context): void
   {
+<<<<<<< HEAD
     foreach($this->token as $token) {
+=======
+    foreach($this->token as $idx => $token) {
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
       
       if ($context instanceof DOMText) {
         $context->appendData($token->text);
         continue;
       }
+<<<<<<< HEAD
       $context = $this->append($context, $token);
     }
   }
   
   private function append($context, $token)
+=======
+      
+      $delta   = $token->depth - ($this->token[$idx-1] ?? (object)['depth' => 1])->depth;
+      $context = $this->append($context, $token, $delta);
+    }
+  }
+  
+  private function append(DOMNode $context, Token $token, int $delta)
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   {
     if ($token->name == 'comment') {
       $context->appendChild(new DOMComment($token->value));
@@ -175,6 +202,7 @@ class Block {
       $doc->insertBefore(new DOMProcessingInstruction(...explode(' ', $token->value, 2)), $doc->firstChild);
       return $context;
     }
+<<<<<<< HEAD
       
     
     # TODO check the depth and decide if it's time to move up or down (might be a good fit for kernel Element enhancments)
@@ -182,6 +210,23 @@ class Block {
      $context = $context->appendChild(new DOMElement($token->name));
     
     $element = $context->appendChild(new DOMElement($token->element ?? $token->name));
+=======
+    
+    if ($token->element && $token->name != 'CDATA' && ($context->nodeName != $token->name || $delta != 0)) {
+      if ($delta < 0)
+        $context = $context->select('../..');
+      else {
+        if ($delta > 0) {
+         $context = $context->appendChild(new Element($token->element));
+         $context->setAttribute('data-depth', $delta);
+        }
+        $context = $context->appendChild(new Element($token->name));
+      }
+    }
+     
+    
+    $element = $context->appendChild(new Element($token->element ?? $token->name));
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     
     if ($token->name === 'hr')
       return $context;
@@ -196,6 +241,7 @@ class Block {
   }
 }
 
+<<<<<<< HEAD
 /*
   TODO consider Inline extends DOMText  
   ... ie. $parent->appendChild(new Inline($text));
@@ -204,6 +250,8 @@ class Block {
 
 # note: (?<=<)(?:https?:\/)?\/(.+?)(?=\/).*(?=>) can find links with the <> encapsulation.
 #       I do not use in my projects and encurage the more the explicit format.
+=======
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
 
 class Inline {
   private static $rgxp = null;
@@ -230,7 +278,12 @@ class Inline {
     $matches = [
       ...$this->gather(self::$rgxp['link'], $text, [$this, 'link']),
       ...$this->gather(self::$rgxp['pair'], $text, [$this, 'basic']),
+<<<<<<< HEAD
       ...$this->gather('/\{([a-z]+)\:(.+?)\}/u', $text, [$this, 'tag'])
+=======
+      ...$this->gather('/\{([a-z]+)\:(.+?)\}/u', $text, [$this, 'tag']),
+      ...$this->gather('/<((?:https?:\/)?\/(.*))>/', $text, [$this, 'autolink'])
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     ];
     
     if ($node->nodeName == 'li')
@@ -286,6 +339,14 @@ class Inline {
     return [...$this->offsets($line, $match), $node];
   }
   
+<<<<<<< HEAD
+=======
+  public function autolink($line, $match, $pathordomain, $url)
+  {
+    return $this->link($line, $match, [false], $url, $pathordomain);
+  }
+  
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   private function link($line, $match, $flag, $text, $url, $caption = null)
   {
     if ($flag[0]) {
@@ -313,4 +374,118 @@ class Inline {
     $out = mb_strlen($match[0]);
     return [0, $out, $out, $node];
   }
+<<<<<<< HEAD
 }
+=======
+}
+
+class Plain {
+  
+  /*
+    TODO still need to convert blockquotes, convert any element containing text into p
+  */
+  private $document;
+  
+  public function __construct(Document $DOM) {
+    $this->document = $DOM;
+    $this->basic = array_flip(Token::INLINE);
+    $this->query = join('|', array_keys($this->basic));
+  }
+  
+  public function __toString() {
+    if ($head = $this->document->select('head')) $head->remove();
+    return str_replace(['‘', '’', '—'], ["'", "'", '--'], trim(html_entity_decode(strip_tags($this->document))));
+  }
+  
+  public function paragraphs():self {
+    foreach ($this->document->find('//p') as $node)
+      $node->parentNode->replaceChild(new Text("\n".$this->inline($node)."\n"), $node);
+    return $this;
+  }
+  
+  public function list():self
+  {
+    foreach ($this->document->find("//li[not(@data-depth)]") as $node) {
+      $indent = str_repeat(' ', ($node->find('ancestor::ul|ancestor::ol')->length - 1) * 2);
+      $prefix = ($node->parentNode->nodeName == 'ol')
+        ? preg_replace('/.*li(\[(\d+)\])(?1)?$/', '\2', $node->getNodePath().'[1]') . '.'
+        : '-';
+      $node("\n{$indent}{$prefix} " . $this->inline($node));
+    }
+    
+    foreach($this->document->find('//ul|//ol') as $node)
+      $node->parentNode->replaceChild(new Text($node->nodeValue. "\n"), $node);
+    
+    return $this;
+  }
+  
+  public function headings():self
+  {
+    foreach ($this->document->find("//*[substring-after(name(), 'h') > 0]") as $node)
+      $node("\n".str_repeat('#', substr($node->nodeName, 1)) . ' ' . $this->inline($node) . "\n");
+    return $this;
+  }
+  
+  public function rules():self {
+    foreach ($this->document->find('//hr') as $node)
+      $node("\n\n----\n\n");
+    return $this;
+  }
+  
+  
+  public function references($context, $name, $attr, $flag):void
+  {
+    foreach ($context->find($name) as $node) {
+      $text  = $name == 'a' ? $this->inline($node) : $node->getAttribute('alt');
+      $title = $node->hasAttribute('title') ? ' "'.$node->gasAttribute('title').'"' : '';
+      $context->replaceChild(new Text('%s[%s](%s%s)', $flag, $text, $node[$attr], $title), $node);
+    }
+  }
+  
+  public function input($context):void
+  {
+    foreach($context->find('label/input[@type="checkbox"]') as $node) {
+      $flag = $node->hasAttribute('checked') ? 'x' : ' ';
+      $context->replaceChild(new Text('[%s] %s', $flag, $this->inline($node->parentNode)), $node->parentNode);
+    }
+  }
+  
+  public function basic($context):void {
+    foreach ($context->find($this->query) as $node) {
+      $flag = $this->basic[$node->nodeName];
+      $context->replaceChild(new Text('%s%s%1$s', $flag, $this->inline($node)), $node);
+    }
+  }
+  
+  public function tags($context):void {
+    foreach ($context->find('span[@class]') as $node)
+      $context->replaceChild(new Text('{%s: %s}', $node['@class'], $node['@title']), $node);
+  }
+  
+  public function inline(Element $node):string
+  {
+    $this->basic($node);
+    $this->references($node, 'a', '@href', '');
+    $this->references($node, 'img', '@src', '!');
+    $this->tags($node);
+    $this->input($node);
+    return trim($node->nodeValue);
+  }
+  
+  public function CDATA():self
+  {
+    foreach ($this->document->find('//pre|//style|//script') as $node) {
+      $flag = $node->nodeName == 'pre' ? '' : $node->nodeName;
+      $node("\n```{$flag}$node->nodeValue```\n");
+    }
+    
+    foreach ($this->document->find('/processing-instruction()|//comment()') as $node) {
+      if ($node->nodeName == '#comment')
+        $node->parentNode->replaceChild(new Text("\n// {$node->data}\n"), $node);
+      else
+        $this->document->documentElement->insertBefore(new Text("?{$node->target} {$node->data}\n"), $this->document->documentElement->firstChild);
+    }
+    return $this;
+  }
+}
+>>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
