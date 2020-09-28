@@ -24,7 +24,7 @@ Route::hooks(function($service = null) {
 try {
   if (CONFIG['dev'] ?? false) include 'edit.php';
 
-  $request   = new Request($_SERVER, 'index.html');
+  $request   = new Request($_SERVER);
   
   header("Content-Type: {$request->mime}");
   

@@ -26,9 +26,6 @@ class Parser {
     throw new Error("{$file->type} Not Supported", 500);
   }
   
-<<<<<<< HEAD
-
-=======
   static public function convert(Document $DOM)
   {
     $md = new Plain($DOM);
@@ -36,7 +33,6 @@ class Parser {
   }
   
   
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   private function scan($iterator)
   {
     $block = new Block;
@@ -54,12 +50,6 @@ class Parser {
     return $this->DOM->saveXML();
   }
   
-<<<<<<< HEAD
-  static public function addCallback(callable $callback) {
-    self::$callbacks[] = $callback;
-  }
-=======
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
 }
 
 class Token {
@@ -167,23 +157,12 @@ class Block {
   
   public function process(DOMElement $context): void
   {
-<<<<<<< HEAD
-    foreach($this->token as $token) {
-=======
     foreach($this->token as $idx => $token) {
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
       
       if ($context instanceof DOMText) {
         $context->appendData($token->text);
         continue;
       }
-<<<<<<< HEAD
-      $context = $this->append($context, $token);
-    }
-  }
-  
-  private function append($context, $token)
-=======
       
       $delta   = $token->depth - ($this->token[$idx-1] ?? (object)['depth' => 1])->depth;
       $context = $this->append($context, $token, $delta);
@@ -191,7 +170,6 @@ class Block {
   }
   
   private function append(DOMNode $context, Token $token, int $delta)
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   {
     if ($token->name == 'comment') {
       $context->appendChild(new DOMComment($token->value));
@@ -202,15 +180,6 @@ class Block {
       $doc->insertBefore(new DOMProcessingInstruction(...explode(' ', $token->value, 2)), $doc->firstChild);
       return $context;
     }
-<<<<<<< HEAD
-      
-    
-    # TODO check the depth and decide if it's time to move up or down (might be a good fit for kernel Element enhancments)
-    if ($token->element && $token->name != 'CDATA' && $context->nodeName != $token->name)
-     $context = $context->appendChild(new DOMElement($token->name));
-    
-    $element = $context->appendChild(new DOMElement($token->element ?? $token->name));
-=======
     
     if ($token->element && $token->name != 'CDATA' && ($context->nodeName != $token->name || $delta != 0)) {
       if ($delta < 0)
@@ -226,7 +195,6 @@ class Block {
      
     
     $element = $context->appendChild(new Element($token->element ?? $token->name));
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     
     if ($token->name === 'hr')
       return $context;
@@ -241,17 +209,6 @@ class Block {
   }
 }
 
-<<<<<<< HEAD
-/*
-  TODO consider Inline extends DOMText  
-  ... ie. $parent->appendChild(new Inline($text));
-  and can do things like $this->splitText($offset) within Inline class
-*/
-
-# note: (?<=<)(?:https?:\/)?\/(.+?)(?=\/).*(?=>) can find links with the <> encapsulation.
-#       I do not use in my projects and encurage the more the explicit format.
-=======
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
 
 class Inline {
   private static $rgxp = null;
@@ -278,12 +235,8 @@ class Inline {
     $matches = [
       ...$this->gather(self::$rgxp['link'], $text, [$this, 'link']),
       ...$this->gather(self::$rgxp['pair'], $text, [$this, 'basic']),
-<<<<<<< HEAD
-      ...$this->gather('/\{([a-z]+)\:(.+?)\}/u', $text, [$this, 'tag'])
-=======
       ...$this->gather('/\{([a-z]+)\:(.+?)\}/u', $text, [$this, 'tag']),
       ...$this->gather('/<((?:https?:\/)?\/(.*))>/', $text, [$this, 'autolink'])
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     ];
     
     if ($node->nodeName == 'li')
@@ -339,14 +292,11 @@ class Inline {
     return [...$this->offsets($line, $match), $node];
   }
   
-<<<<<<< HEAD
-=======
   public function autolink($line, $match, $pathordomain, $url)
   {
     return $this->link($line, $match, [false], $url, $pathordomain);
   }
   
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   private function link($line, $match, $flag, $text, $url, $caption = null)
   {
     if ($flag[0]) {
@@ -374,9 +324,6 @@ class Inline {
     $out = mb_strlen($match[0]);
     return [0, $out, $out, $node];
   }
-<<<<<<< HEAD
-}
-=======
 }
 
 class Plain {
@@ -488,4 +435,3 @@ class Plain {
     return $this;
   }
 }
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2

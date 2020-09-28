@@ -17,19 +17,6 @@ class Image {
     return new self(\File::load($path));
   }
   
-<<<<<<< HEAD
-  public function scale(int $dimension, int $quality = 80)
-  {
-    $scaled   = imagescale($this->resource, ($dimension * $this->aspect));
-    ob_start();
-    imagejpeg($scaled, null, $quality);
-    return ob_get_clean();
-  }
-  
-  public function save(string $type = null)
-  {
-    # code...
-=======
   public function scale(int $dimension)
   {
     $this->resource = imagescale($this->resource, ($dimension * $this->aspect));
@@ -46,7 +33,6 @@ class Image {
     call_user_func($processor, $this->resource, null, 80);
     $this->file->body = ob_get_clean();
     return $this->file;
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   }
   
   public function __destruct() {

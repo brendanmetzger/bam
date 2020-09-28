@@ -98,11 +98,7 @@ class File
     $this->type  = strtolower($this->info['extension'] ?? 'html');
     $this->info['scheme'] ??= ($this->type == 'gz' ? 'compress.zlib' : 'file');
     $this->local = substr($this->info['scheme'], 0, 4) != 'http';
-<<<<<<< HEAD
-    $this->url   = $this->local ? $this->info['scheme'].'://' . realpath($this->uri) : $this->uri;
-=======
     $this->url = $this->info['url'] = $this->local ? $this->info['scheme'].'://' . realpath($this->uri) : $this->uri;
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     $this->mime  = self::MIME[$this->type];
     $this->id    = md5($this->url);
     if ($content) $this->setBody($content);
@@ -146,27 +142,6 @@ class File
 
 class Request
 {
-<<<<<<< HEAD
-  public $uri, $method, $data = '', $basic = false, $headers = [];
-  
-  
-  public function __construct(array $headers, $default = 'index.html')
-  {
-    $uri = parse_url(urldecode($headers['REQUEST_URI']));
-    $this->uri    = trim($uri['path'], '/');
-    $this->method = $headers['REQUEST_METHOD'] ?? 'GET';
-
-    $this->headers = $headers;
-    
-    [$basename, $extension] = explode('.', $default);
-    preg_match('/\/?(.*?)(?:\.([a-z][a-z0-9]{1,4}))?$/i', $this->uri, $match);
-    
-    $this->route = ($match[1] ?? $basename)  ?: $basename;  // the match may or may not
-    $this->type  = ($match[2] ?? $extension) ?: $extension; // have a key w/ a falsy value
-    
-    $this->mime    = $headers['CONTENT_TYPE']  ?? File::MIME[$this->type] ?? File::MIME['html'];
-    $this->default = isset($headers['partial']) ? $this->route : $basename;
-=======
   const REGEX = '/^([\w\/-]*+)(?:\.(\w{1,4}))?$/i';
   
   public $uri, $method, $data = '', $basic = false, $index = 'index', $headers = [];
@@ -184,21 +159,13 @@ class Request
     $this->route = $match[1] ?: $this->index; 
     $this->type  = $match[2] ?: $type;
     $this->mime  = $headers['CONTENT_TYPE'] ?? File::MIME[$this->type] ?? File::MIME[$type];
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     
     // 'Basic' requests do not need a layout
     $this->basic = $this->mime != 'text/html' || ($headers['HTTP_YIELD'] ?? false);  
     
-<<<<<<< HEAD
-    // can be _POST or stdin... consider  
-    if (in_array($this->method, ['POST','PUT']) && ($headers['CONTENT_LENGTH'] ?? 0) > 0)
-      $this->data = file_get_contents('php://input');
-
-=======
     // can be POST, PUT or PATCH, which all contain a body
     if ($this->method[0] === 'P' && ($headers['CONTENT_LENGTH'] ?? 0) > 0)
       $this->data = file_get_contents('php://input');
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   }
     
   static public function GET($uri, array $data = [], array $headers = []): Document
@@ -240,11 +207,7 @@ class Response extends File implements Router
     parent::__construct($request->uri);
     $this->merge($data);
     $this->request = $request;
-<<<<<<< HEAD
-    $this->body    = Route::endpoint($request->default);
-=======
     $this->body    = Route::endpoint($request->index);
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     $this->params  = explode('/', $request->route);
     $this->action  = strtolower(array_shift($this->params));
     $this->view    = Route::endpoint($request->route) ?? Route::endpoint($this->action);
@@ -280,21 +243,14 @@ class Response extends File implements Router
   public function delegate($config) {
     if ($this->request->basic) {
       if ($config && ! ($config instanceof DOMNode)) return $config;
-<<<<<<< HEAD
-      return new Template(($config instanceof DOMNode ? $config : $this->view), $this->layout);
-=======
       $this->layout = new Template(($config instanceof DOMNode ? $config : $this->view), $this->layout);
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     } else if ($this->body != $config)
       $this->yield(Template::YIELD, $config);
     else
       $this->layout = new Template($config);
     
-<<<<<<< HEAD
-=======
     $this->data['info'] = $this->view->info;
     
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
     return $this->layout;
   }
 }
@@ -630,16 +586,12 @@ class Element extends DOMElement implements ArrayAccess {
   }
 }
 
-<<<<<<< HEAD
-class Text extends DOMText { use invocable; }
-=======
 class Text extends DOMText {
   use invocable; 
   public function __construct(string $input, ...$args) {
     parent::__construct($args ? vsprintf($input, $args) : $input);
   }
 }
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
 class Attr extends DOMAttr {
   use invocable;
   public function remove() {
@@ -673,11 +625,7 @@ trait Registry {
     $this->data[$key] = $value;
   }
   public function __get($key) {
-<<<<<<< HEAD
-    return $this->data[$key];
-=======
     return $this->data[$key] ?? null;
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
   }
   public function merge(array $data) {
     return $this->data = array_merge($this->data, $data);
@@ -755,24 +703,17 @@ class Data extends ArrayIterator
 }
 
 /**
-<<<<<<< HEAD
- * Model | a wrapper for any DOM element that turns it into a model-able resource
-=======
  * Model | typ. used to model DOM accessable data with CRUD-able interfaces
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
  *
 **/
 
 abstract class Model implements ArrayAccess {
   protected $context;
-<<<<<<< HEAD
-=======
   
   static public function FACTORY(...$args)
   {
     return print_r($args);
   }
->>>>>>> 3e924ddcc8f7363d605ad42ddb8ca4d3169d60b2
 
   public function __construct(Element $context) { 
     $this->context = $context;
